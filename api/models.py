@@ -1,4 +1,4 @@
-# Creación del modelo de la base de datos
+# Creation of DDBB data model
 from sqlalchemy import Column, Integer, String, Date, ForeignKey
 from sqlalchemy.orm import relationship, declarative_base
 

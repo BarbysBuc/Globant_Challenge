@@ -1,4 +1,4 @@
-# Carga de la BBDD
+# Load of DDBB
 
 import csv
 from io import StringIO
@@ -24,49 +24,49 @@ async def process_csv(file: UploadFile, db: AsyncSession):
         elif "hired_employees" in file_name:
             await process_batch(reader, db, EmployeeCreate, Employee, ["id", "name", "datetime", "department_id", "job_id"])
         else:
-            raise ValueError("El nombre del archivo no es válido")
-        logger.info(f"Archivo {file.filename} procesado correctamente")
+            raise ValueError("Invalid filename")
+        logger.info(f"File {file.filename} succesfully processed")
     except Exception as e:
-        logger.error(f"Error al procesar el CSV {file.filename}: {e}")
-        raise Exception(f"Error al procesar el CSV: {e}")
+        logger.error(f"Failed when processing CSV {file.filename}: {e}")
+        raise Exception(f"Failed when processing CSV: {e}")
     finally:
-        await file.close()  # Cerrar el archivo
+        await file.close()  # Close file
 
 async def process_batch(reader: csv.reader, db: AsyncSession, schema, model, field_names):
     batch = []
     for row in reader:
         try:
             data = {key: value for key, value in zip(field_names, row)}
-            # Validar datos
-            if all(data.values()):  # Asegúrate de que todos los valores existen
-                validated_data = schema(**data)  # Validación con Pydantic
+            # Data validation
+            if all(data.values()):  # Ensure all values exists
+                validated_data = schema(**data)  # Pydantic validation
                 instance = model(**validated_data.dict())
                 batch.append(instance)
             else:
-                logger.warning(f"Registro con valores faltantes: {data}")
+                logger.warning(f"Row with failed data: {data}")
             if len(batch) >= 1000:
                 await save_batch(db, batch)
                 batch = []
         except Exception as e:
-            logger.error(f"Error en el registro {row}: {e}")
-            raise Exception(f"Error en el registro {row}: {e}")
+            logger.error(f"Error in the row {row}: {e}")
+            raise Exception(f"Error in the row {row}: {e}")
 
     
     if batch:
         await save_batch(db, batch)
 
 async def save_batch(db: AsyncSession, batch):
-    for attempt in range(3):  # Reintentar hasta 3 veces
+    for attempt in range(3):  # Retry until 3 times
         try:
-            async with db.begin():  # Usar begin para iniciar una transacción
+            async with db.begin():  # Use begin to initiate transaction
                 db.add_all(batch)
                 await db.commit()
-            logger.info("Batch guardado correctamente")
+            logger.info("Batch succsesfully loaded")
             break
         except SQLAlchemyError as e:
-            await db.rollback()  # Asegura que se revierta la transacción en caso de error
+            await db.rollback()  #Ensure transaction revert in error case
             if attempt == 2:
-                logger.error(f"Error al guardar el batch después de 3 intentos: {e}")
-                raise Exception(f"Error al guardar el batch después de 3 intentos: {e}")
-            logger.warning(f"Reintentando guardar el batch, intento {attempt + 1}")
-            await asyncio.sleep(1)  # Esperar 1 segundo antes de reintentar
+                logger.error(f"Failed to load batch after 3 attempts: {e}")
+                raise Exception(f"Failed to load batch after 3 attempts: {e}")
+            logger.warning(f"Re try, attempt: {attempt + 1}")
+            await asyncio.sleep(1)  # Wait 1 sec before retry

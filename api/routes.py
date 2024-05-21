@@ -1,4 +1,4 @@
-#END POINTS AQUI
+#END POINTS HERE
 
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,7 +6,6 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy import text
 from api.services import process_csv
 from api.database import get_db
-from api.schemas import EmployeesPerQuarter, DepartmentsAboveMean
 from typing import List
 import logging
 
@@ -78,8 +77,8 @@ async def employees_per_quarter(db: AsyncSession = Depends(get_db)):
         headers = ["Department", "Job", "Q1", "Q2", "Q3", "Q4"]
         return HTMLResponse(content=generate_html_table(rows, headers))    
     except Exception as e:
-        logger.error(f"Error al obtener datos: {e}")
-        raise HTTPException(status_code=500, detail="Error interno del servidor")
+        logger.error(f"Failed trying to obtain data: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/departments_above_mean", response_class=HTMLResponse)
 async def departments_above_mean(db: AsyncSession = Depends(get_db)):
@@ -114,31 +113,26 @@ async def departments_above_mean(db: AsyncSession = Depends(get_db)):
        headers = ["ID", "Department", "Hired"]
        return HTMLResponse(content=generate_html_table(rows,headers))
     except Exception as e:
-        logger.error(f"Error al obtener datos: {e}")
-        raise HTTPException(status_code=500, detail="Error interno del servidor")
-
-
-@router.get("/healthcheck")
-async def healthcheck():
-    return {"status": "ok"}
+        logger.error(f"Failed trying to obtain data: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.post("/upload_csv")
 async def upload_csv(file: UploadFile = File(...), db: AsyncSession = Depends(get_db)):
-    logger.info(f"Recibido archivo: {file.filename}")
+    logger.info(f"File received: {file.filename}")
     if file.filename.endswith('.csv'):
         try:
             await process_csv(file, db)
-            logger.info(f"Archivo {file.filename} procesado correctamente")
-            return {"message": "Archivo cargado"}
+            logger.info(f"File {file.filename} succesfully processed")
+            return {"message": "File loaded"}
         except Exception as e:
-            logger.error(f"Error al procesar el archivo {file.filename}: {str(e)}")
+            logger.error(f"Failed processing the file: {file.filename}: {str(e)}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-                detail=f"Error al procesar el archivo: {str(e)}"
+                detail=f"Failed processing the file: {str(e)}"
                 )
     else:
-        logger.warning(f"Formato de archivo no válido: {file.filename}")
+        logger.warning(f"Invalid file format: {file.filename}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, 
-            detail="El formato del archivo debe ser .csv"
+            detail="The type of file must be .csv"
             )

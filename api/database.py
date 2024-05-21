@@ -1,4 +1,4 @@
-# Conexión a la BBDD y creación de tablas
+# DB Connection and table creations
 
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -13,10 +13,10 @@ DATABASE_URL = "postgresql+asyncpg://postgres:232172@localhost/g_challenge"
 
 engine = create_async_engine(
     DATABASE_URL, 
-    echo=True, # Motor con el registro de todas las sentencias SQL
-    pool_timeout=120, # Aumenta el tiemeout
-    pool_size=10,  # Tamaño del pool de conexiones
-    max_overflow=20  # Máximo de conexiones adicionales que pueden ser creadas
+    echo=True, # engine with all SQL sentences
+    pool_timeout=120, # Increase timeout
+    pool_size=10,  # size of connections
+    max_overflow=20  # max of connections
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=AsyncSession)
@@ -27,15 +27,15 @@ async def get_db():
         try:
             yield session
         finally:
-            await session.close()  # Cerrar la sesión adecuadamente
+            await session.close()  # Close session
 
 
-# Inicializar la BBDD
+# Initialize the DDBB
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-# Verificar tablas
+# Tables verification
 async def check_tables():
     async with engine.begin() as conn:
         result = await conn.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"))
