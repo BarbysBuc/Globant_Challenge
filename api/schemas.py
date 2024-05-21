@@ -2,6 +2,19 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List
 
+class EmployeesPerQuarter(BaseModel):
+    department: str
+    job: str
+    Q1: int
+    Q2: int
+    Q3: int
+    Q4: int
+
+class DepartmentsAboveMean(BaseModel):
+    id: int
+    department: str
+    hired: int
+
 class DepartmentCreate(BaseModel):
     id: int
     department: str
