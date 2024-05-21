@@ -88,7 +88,7 @@ y los endpoints /departments_above_mean o /employees_per_quarter para las consul
     - 200 OK: Se realizó la consulta.
 
 
-### Consulta empleados contratados para cada departamentoique contrató más empleados que la media en 2021
+### Consulta empleados contratados para cada departamento que contrató más empleados que la media en 2021
 - URL: /employees_per_quarter
 - Método: GET
 - Descripción: Realiza la consulta a la Base de datos
